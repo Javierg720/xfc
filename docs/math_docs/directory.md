@@ -34,8 +34,8 @@ This repository is organized into several directories, each focusing on a specif
   - Includes basic PyTest functions for verifying win calculations:
     - `win_calculations/`: Tests various win-mechanic functionality.
 
-- **`uploads/`**
-  - Handles the data upload process for connecting and uploading game files to an AWS S3 bucket for testing.
+- **Optional upload/export tooling**
+  - Some math-sdk projects include a dedicated upload/export area for pushing generated game files to test infrastructure. This trimmed repo does not include that directory.
 
 - **`optimization_program/`**
   - Contains an experimental genetic algorithm (written in Rust) for balancing discrete-outcome games.
@@ -70,8 +70,8 @@ This repository is organized into several directories, each focusing on a specif
 #### `tests/`
 - **`win_calculations/`**: Tests various win-mechanic functionality.
 
-#### `uploads/`
-- Handles the process of uploading game files to an AWS S3 bucket for testing.
+#### Optional upload/export tooling
+- Some math-sdk projects include a directory for uploading generated game files to test infrastructure. This trimmed repo omits that folder.
 
 #### `optimization_program/`
 - Experimental genetic algorithm (written in Rust) for balancing discrete-outcome games.
