@@ -2234,7 +2234,7 @@
         <div class="paytable-grid" id="paytableGrid"></div>
         <p style="font-size:14px;letter-spacing:1.5px;color:var(--dust);margin-top:12px;">
           243 ways to win. Pays = multiplier × ways × bet. Left-to-right consecutive reels.<br>
-          RFC wildcard substitutes for all except RFC cage scatter. 3+ RFC cage scatters → 10 free fights.
+          RFC wildcard substitutes for all except Dana White scatter. 3+ Dana White scatters → 10 free fights.
         </p>
         <button id="paytableClose">CLOSE</button>
       </div>
@@ -2276,7 +2276,7 @@
     L7:  { img: 'symbols/sym_J.png',           label: 'J',         tier: 'low',     pay: { 3: 0.3,  4: 1.0,  5:  3.0 } },
     L8:  { img: 'symbols/sym_10.png',          label: '10',        tier: 'low',     pay: { 3: 0.25, 4: 0.8,  5:  2.5 } },
     W:   { img: 'symbols/sym_wild_nate.png',     label: 'Wildcard',    tier: 'wild',    pay: null },
-    S:   { img: 'symbols/sym_cage_rfc.png',      label: 'RFC Cage',    tier: 'scatter', pay: null },
+    S:   { img: 'symbols/sym_cage_rfc.png',      label: 'Dana White',  tier: 'scatter', pay: null },
   };
 
   const WINCAP = 5000; // ×base bet, hard ceiling per spin
@@ -2505,7 +2505,7 @@
     } else if (s.tier === 'wild') {
       paysHtml = '<div class="pt-name">RFC WILDCARD</div><span style="color:var(--orange)">Substitutes for all symbols except RFC CAGE scatter</span>';
     } else {
-      paysHtml = '<div class="pt-name">RFC CAGE — SCATTER</div><span style="color:var(--orange)">3+ anywhere triggers 10 free fights</span>';
+      paysHtml = '<div class="pt-name">DANA WHITE — SCATTER</div><span style="color:var(--orange)">3+ anywhere triggers 10 free fights</span>';
     }
     row.innerHTML = `<img src="${s.img}" alt=""><div class="pt-pays">${paysHtml}</div>`;
     els.paytableGrid.appendChild(row);
