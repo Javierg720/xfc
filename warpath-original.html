@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<title>Warpath Reels</title>
+<style>
+  :root {
+    --orange:   #ff6600;
+    --orange-2: #cc4400;
+    --orange-3: #ff7722;
+    --green:    #22dd22;
+    --red:      #ff2222;
+    --ink:      #0a0505;
+    --ink-2:    #150a0a;
+    --dust:     #888;
+    --dust-2:   #555;
+    --edge:     #333;
+    --edge-2:   #222;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100vw; height: 100vh;
+    margin: 0; padding: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Rajdhani', 'Oswald', 'Trebuchet MS', 'Segoe UI', sans-serif;
+    user-select: none;
+    color: #fff;
+  }
+
+  .wrapper {
+    width: 100vw; height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+  }
+
+  .stage {
+    position: relative;
+    flex-shrink: 0;
+    width: 1920px; height: 1080px;
+    background: linear-gradient(180deg, var(--ink), var(--ink-2), var(--ink));
+    transform-origin: center center;
+    overflow: hidden;
+  }
+
+  .bg, .overlay {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+  .bg { opacity: 0.45; }
+  .overlay {
+    opacity: 0;
+    background: radial-gradient(ellipse at center, rgba(255,102,0,0.25) 0%, transparent 70%);
+    transition: opacity 0.5s;
+  }
+  .stage.bonus .overlay { opacity: 0.6; animation: bonusPulse 3s ease-in-out infinite; }
+  @keyframes bonusPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.75; }
+  }
+
+  /* ------- TITLE ------- */
+  .title {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 5;
+  }
+  .title-main {
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: 18px;
+    color: var(--dust);
+    text-shadow: 0 0 20px rgba(255, 102, 0, 0.3), 0 2px 0 #000;
+  }
+  .title-sub {
+    font-size: 16px;
+    letter-spacing: 8px;
+    color: var(--dust-2);
+    margin-top: 4px;
+  }
+
+  /* ------- ESCALATION PIPS ------- */
+  .escalation {
+    position: absolute;
+    top: 120px;
+    left: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 5;
+  }
+  .esc-label {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--dust-2);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .pips {
+    display: flex;
+    gap: 8px;
+  }
+  .pip {
+    width: 36px; height: 36px;
+    background: #1a1a1a;
+    border: 2px solid #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #333;
+    transition: all 0.3s;
+    clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+  }
+  .pip.active {
+    background: linear-gradient(180deg, var(--orange), var(--orange-2));
+    border-color: var(--orange);
+    color: #000;
+    box-shadow: 0 0 16px rgba(255, 102, 0, 0.6);
+  }
+
+  /* ------- MULTIPLIER BADGE (right side) ------- */
+  .mult-badge {
+    position: absolute;
+    top: 120px;
+    right: 40px;
+    background: linear-gradient(180deg, #1a1010, #0a0505);
+    border: 3px solid var(--orange);
+    padding: 12px 28px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255, 102, 0, 0.4);
+    display: none;
+    z-index: 5;
+  }
+  .stage.bonus .mult-badge { display: block; }
+  .mult-label {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--orange);
+    font-weight: 700;
+  }
+  .mult-value {
+    font-size: 48px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    margin-top: 4px;
+    text-shadow: 0 0 20px var(--orange);
+  }
+
+  /* ------- REELS ------- */
+  .reels-container {
+    position: absolute;
+    top: 210px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+  }
+  .ways-label {
+    text-align: center;
+    font-size: 18px;
+    letter-spacing: 6px;
+    color: var(--orange);
+    font-weight: 800;
+    margin-bottom: 8px;
+    text-shadow: 0 0 10px rgba(255, 102, 0, 0.6);
+  }
+  .reels {
+    display: flex;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 6px;
+    border: 3px solid var(--edge-2);
+    border-radius: 10px;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.8);
+  }
+  .stage.bonus .reels {
+    border-color: var(--orange);
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 50px rgba(255, 102, 0, 0.4);
+  }
+  .reel {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .symbol {
+    width: 180px; height: 180px;
+    position: relative;
+    background: #0a0a0a;
+    border: 2px solid #1a1a1a;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+  .symbol-img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+  }
+  .reel.spinning .symbol {
+    animation: reelShake 0.08s infinite;
+  }
+  @keyframes reelShake {
+    0%, 100% { transform: translateY(0); }
+    25%      { transform: translateY(-4px); }
+    75%      { transform: translateY(4px); }
+  }
+  .symbol.win {
+    border-color: var(--orange);
+    box-shadow: 0 0 24px var(--orange), inset 0 0 12px rgba(255, 102, 0, 0.4);
+    animation: winPulse 0.6s ease-in-out infinite alternate;
+    z-index: 4;
+  }
+  @keyframes winPulse {
+    0%   { transform: scale(1); }
+    100% { transform: scale(1.06); }
+  }
+  .symbol.fade {
+    opacity: 0.35;
+  }
+  /* SR71 spans 2 cells on reel 5 */
+  .symbol.tall {
+    height: 364px;
+  }
+
+  /* ------- WIN DISPLAY ------- */
+  .win-display {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .win-display.show { opacity: 1; }
+  .win-label {
+    font-size: 20px;
+    letter-spacing: 8px;
+    color: var(--orange);
+    font-weight: 700;
+  }
+  .win-amount {
+    font-size: 100px;
+    font-weight: 900;
+    color: var(--orange);
+    text-shadow: 0 0 50px rgba(255, 102, 0, 0.9), 0 0 100px rgba(255, 102, 0, 0.5);
+    animation: winPulse 0.5s ease-in-out infinite;
+    line-height: 1;
+  }
+
+  /* ------- FREE SPIN COUNTER (center below reels) ------- */
+  .fs-counter {
+    position: absolute;
+    top: 900px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    padding: 14px 50px;
+    border: 3px solid var(--orange);
+    border-radius: 10px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    z-index: 6;
+    box-shadow: 0 0 30px rgba(255, 102, 0, 0.5);
+  }
+  .stage.bonus .fs-counter { display: flex; }
+  .fs-label {
+    font-size: 14px;
+    letter-spacing: 5px;
+    color: var(--orange);
+    font-weight: 700;
+  }
+  .fs-count {
+    font-size: 36px;
+    font-weight: 900;
+    color: #fff;
+    margin-top: 2px;
+  }
+
+  /* ------- BET PANEL ------- */
+  .bet-panel {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    padding: 20px 60px;
+    background: linear-gradient(180deg, rgba(30, 20, 20, 0.95), rgba(15, 10, 10, 0.95));
+    border: 2px solid var(--edge);
+    border-radius: 14px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    z-index: 10;
+  }
+  .balance, .bet-display {
+    min-width: 180px;
+    text-align: center;
+  }
+  .stat-label {
+    display: block;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--dust-2);
+    font-weight: 700;
+  }
+  .balance-amount {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--green);
+    margin-top: 4px;
+    text-shadow: 0 0 8px rgba(34, 221, 34, 0.3);
+  }
+  .bet-amount {
+    display: block;
+    font-size: 30px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 4px;
+  }
+  .bet-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn {
+    width: 48px; height: 48px;
+    font-size: 26px;
+    font-weight: 700;
+    background: linear-gradient(180deg, var(--edge), var(--edge-2));
+    color: #fff;
+    border: 2px solid #444;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #444, var(--edge));
+    border-color: var(--orange);
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .spin-btn {
+    padding: 26px 70px;
+    font-size: 30px;
+    font-weight: 900;
+    background: linear-gradient(180deg, var(--orange), var(--orange-2));
+    color: #000;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 8px;
+    border-radius: 14px;
+    box-shadow: 0 4px 25px rgba(255, 102, 0, 0.5);
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .spin-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, var(--orange-3), #dd5522);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(255, 102, 0, 0.6);
+  }
+  .spin-btn:active:not(:disabled) { transform: translateY(0); }
+  .spin-btn:disabled {
+    background: #444;
+    color: #777;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* ------- MODAL ------- */
+  .modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal.show { display: flex; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal-inner {
+    background: linear-gradient(180deg, var(--ink-2), var(--ink));
+    border: 4px solid var(--orange);
+    border-radius: 16px;
+    padding: 50px 80px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(255, 102, 0, 0.6), 0 0 120px rgba(255, 102, 0, 0.3);
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 80%;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.6); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .modal h2 {
+    color: var(--orange);
+    font-size: 56px;
+    letter-spacing: 8px;
+    text-shadow: 0 0 30px var(--orange);
+    margin-bottom: 16px;
+    font-weight: 900;
+  }
+  .modal p {
+    color: #fff;
+    font-size: 20px;
+    line-height: 1.6;
+    margin: 12px 0;
+    letter-spacing: 2px;
+  }
+  .modal .big-number {
+    display: block;
+    font-size: 80px;
+    color: var(--orange);
+    font-weight: 900;
+    margin: 20px 0;
+    text-shadow: 0 0 30px var(--orange);
+  }
+  .modal button {
+    background: linear-gradient(180deg, var(--orange), var(--orange-2));
+    color: #000;
+    border: none;
+    border-radius: 40px;
+    padding: 18px 60px;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    box-shadow: 0 4px 20px rgba(255, 102, 0, 0.5);
+    font-family: inherit;
+  }
+  .modal button:hover { transform: translateY(-2px); }
+
+  /* ------- TOASTS ------- */
+  .toast {
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: linear-gradient(180deg, var(--orange), var(--orange-2));
+    color: #000;
+    padding: 14px 40px;
+    border-radius: 30px;
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    z-index: 30;
+    pointer-events: none;
+    box-shadow: 0 0 30px var(--orange);
+  }
+  .toast.show { animation: toastAnim 2.2s ease-out forwards; }
+  @keyframes toastAnim {
+    0%   { transform: translate(-50%, -50%) scale(0); }
+    15%  { transform: translate(-50%, -50%) scale(1.1); }
+    25%  { transform: translate(-50%, -50%) scale(1); }
+    75%  { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -100%) scale(0.85); opacity: 0; }
+  }
+
+  /* ------- INFO (top right) ------- */
+  .info-btn {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    width: 48px; height: 48px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--orange);
+    color: var(--orange);
+    font-size: 22px;
+    font-weight: 900;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 15;
+    font-family: inherit;
+  }
+  .info-btn:hover { background: rgba(255, 102, 0, 0.2); }
+
+  .paytable-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+    text-align: left;
+  }
+  .pt-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 12px;
+    background: rgba(255, 102, 0, 0.08);
+    border: 1px solid rgba(255, 102, 0, 0.3);
+    border-radius: 6px;
+  }
+  .pt-row img { width: 48px; height: 48px; object-fit: contain; }
+  .pt-pays {
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
+  .pt-pays b { color: var(--orange); margin-right: 6px; }
+
+  /* ============= CINEMATIC BONUS INTRO ============= */
+  .bonus-intro {
+    position: absolute;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .bonus-intro.show { display: block; pointer-events: auto; }
+
+  /* white flash */
+  .bi-flash {
+    position: absolute; inset: 0;
+    background: #fff;
+    opacity: 0;
+  }
+  .bonus-intro.show .bi-flash {
+    animation: biFlash 0.35s ease-out forwards;
+  }
+  @keyframes biFlash {
+    0%   { opacity: 0; }
+    20%  { opacity: 0.95; background: #fff; }
+    50%  { opacity: 0.7;  background: #ff6600; }
+    100% { opacity: 0; }
+  }
+
+  /* dark vignette backdrop */
+  .bonus-intro.show::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(40,10,0,0.85) 0%, rgba(0,0,0,0.98) 80%);
+    animation: biBackdrop 0.4s ease-out forwards;
+  }
+  @keyframes biBackdrop {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* horizontal sweep scan line */
+  .bi-scan {
+    position: absolute;
+    top: 0; left: -20%;
+    width: 40%; height: 100%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 102, 0, 0.3) 40%,
+      rgba(255, 200, 100, 0.9) 50%,
+      rgba(255, 102, 0, 0.3) 60%,
+      transparent 100%);
+    opacity: 0;
+  }
+  .bonus-intro.show .bi-scan {
+    animation: biScan 1.2s ease-out 0.2s forwards;
+  }
+  @keyframes biScan {
+    0%   { opacity: 0; left: -40%; }
+    30%  { opacity: 1; }
+    100% { opacity: 0; left: 100%; }
+  }
+
+  /* alert bars (top + bottom) slam in */
+  .bi-bar {
+    position: absolute;
+    left: 0; right: 0;
+    height: 80px;
+    background: repeating-linear-gradient(
+      45deg,
+      var(--orange) 0 24px,
+      #000 24px 48px
+    );
+    opacity: 0;
+    z-index: 2;
+    box-shadow: 0 0 40px rgba(255, 102, 0, 0.6);
+  }
+  .bi-bar-top { top: 0; transform: translateY(-100%); }
+  .bi-bar-bot { bottom: 0; transform: translateY(100%); }
+  .bonus-intro.show .bi-bar-top {
+    animation: biBarTop 0.5s cubic-bezier(0.25, 1, 0.5, 1) 0.3s forwards;
+  }
+  .bonus-intro.show .bi-bar-bot {
+    animation: biBarBot 0.5s cubic-bezier(0.25, 1, 0.5, 1) 0.3s forwards;
+  }
+  @keyframes biBarTop {
+    0%   { transform: translateY(-100%); opacity: 0; }
+    60%  { opacity: 1; }
+    100% { transform: translateY(0);     opacity: 1; }
+  }
+  @keyframes biBarBot {
+    0%   { transform: translateY(100%);  opacity: 0; }
+    60%  { opacity: 1; }
+    100% { transform: translateY(0);     opacity: 1; }
+  }
+
+  /* diagonal warning stripes across middle */
+  .bi-stripes {
+    position: absolute;
+    top: 0; bottom: 0; left: -50%;
+    width: 200%;
+    opacity: 0;
+    background: repeating-linear-gradient(
+      -20deg,
+      transparent 0 40px,
+      rgba(255, 102, 0, 0.12) 40px 60px,
+      transparent 60px 100px
+    );
+    z-index: 1;
+  }
+  .bonus-intro.show .bi-stripes {
+    animation: biStripes 1.4s ease-in-out 0.4s forwards;
+  }
+  @keyframes biStripes {
+    0%   { opacity: 0; transform: translateX(-10%); }
+    30%  { opacity: 0.8; }
+    100% { opacity: 0.25; transform: translateX(0); }
+  }
+
+  /* expanding shock rings behind title */
+  .bi-rings {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0; height: 0;
+    z-index: 2;
+  }
+  .bi-rings::before,
+  .bi-rings::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 100px; height: 100px;
+    border: 4px solid var(--orange);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  .bonus-intro.show .bi-rings::before {
+    animation: biRing 1.6s ease-out 0.6s forwards;
+  }
+  .bonus-intro.show .bi-rings::after {
+    animation: biRing 1.6s ease-out 0.9s forwards;
+  }
+  @keyframes biRing {
+    0%   { transform: translate(-50%, -50%) scale(0);   opacity: 1; border-width: 6px; }
+    100% { transform: translate(-50%, -50%) scale(18);  opacity: 0; border-width: 1px; }
+  }
+
+  /* central content */
+  .bi-content {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 5;
+    width: 90%;
+    max-width: 1400px;
+  }
+
+  .bi-incoming {
+    font-size: 42px;
+    color: var(--red);
+    font-weight: 900;
+    letter-spacing: 16px;
+    text-shadow: 0 0 30px rgba(255, 34, 34, 0.9), 0 0 60px rgba(255, 34, 34, 0.5);
+    opacity: 0;
+    transform: scale(0.3);
+    margin-bottom: 20px;
+  }
+  .bonus-intro.show .bi-incoming {
+    animation: biIncoming 0.45s cubic-bezier(0.34, 1.8, 0.64, 1) 0.55s forwards,
+               biBlink 0.6s ease-in-out 1s infinite alternate;
+  }
+  @keyframes biIncoming {
+    0%   { opacity: 0; transform: scale(3) rotate(-3deg); filter: blur(20px); }
+    50%  { opacity: 1; transform: scale(1.15) rotate(1deg); filter: blur(0); }
+    100% { opacity: 1; transform: scale(1) rotate(0); }
+  }
+  @keyframes biBlink {
+    0%   { text-shadow: 0 0 20px rgba(255, 34, 34, 0.6); color: #ff5555; }
+    100% { text-shadow: 0 0 40px rgba(255, 34, 34, 1), 0 0 80px rgba(255, 34, 34, 0.7); color: #ff2222; }
+  }
+
+  .bi-title {
+    font-size: 140px;
+    font-weight: 900;
+    letter-spacing: 20px;
+    color: var(--orange);
+    text-shadow:
+      0 0 40px rgba(255, 102, 0, 0.9),
+      0 0 80px rgba(255, 102, 0, 0.6),
+      0 6px 0 #000,
+      0 10px 40px rgba(0,0,0,0.8);
+    opacity: 0;
+    transform: translateY(80px) scale(0.7);
+    margin-bottom: 8px;
+  }
+  .bonus-intro.show .bi-title {
+    animation: biTitle 0.6s cubic-bezier(0.25, 1.5, 0.5, 1) 1.0s forwards,
+               biTitleGlow 1.8s ease-in-out 1.6s infinite alternate;
+  }
+  @keyframes biTitle {
+    0%   { opacity: 0; transform: translateY(80px) scale(0.7); }
+    100% { opacity: 1; transform: translateY(0)    scale(1); }
+  }
+  @keyframes biTitleGlow {
+    0%   { text-shadow: 0 0 30px rgba(255, 102, 0, 0.7), 0 0 60px rgba(255, 102, 0, 0.4), 0 6px 0 #000; }
+    100% { text-shadow: 0 0 60px rgba(255, 102, 0, 1),   0 0 120px rgba(255, 102, 0, 0.8), 0 6px 0 #000; }
+  }
+
+  .bi-num-wrap {
+    margin: 10px 0 20px 0;
+    opacity: 0;
+  }
+  .bonus-intro.show .bi-num-wrap {
+    animation: biNumFade 0.4s ease-out 1.5s forwards;
+  }
+  @keyframes biNumFade { to { opacity: 1; } }
+
+  .bi-num {
+    display: inline-block;
+    font-size: 180px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 0.9;
+    text-shadow:
+      0 0 50px var(--orange),
+      0 0 100px rgba(255, 102, 0, 0.8),
+      0 8px 0 var(--orange-2),
+      0 16px 30px rgba(0,0,0,0.9);
+    transform: scale(0);
+  }
+  .bonus-intro.show .bi-num {
+    animation: biNumPop 0.5s cubic-bezier(0.34, 1.8, 0.64, 1) 1.5s forwards,
+               biNumPulse 0.9s ease-in-out 2.2s infinite alternate;
+  }
+  @keyframes biNumPop {
+    0%   { transform: scale(0) rotate(-180deg); }
+    70%  { transform: scale(1.3) rotate(20deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+  @keyframes biNumPulse {
+    0%   { transform: scale(1);    text-shadow: 0 0 40px var(--orange), 0 8px 0 var(--orange-2); }
+    100% { transform: scale(1.05); text-shadow: 0 0 80px var(--orange), 0 0 160px rgba(255,102,0,0.6), 0 8px 0 var(--orange-2); }
+  }
+
+  .bi-sub {
+    font-size: 20px;
+    color: var(--dust);
+    letter-spacing: 8px;
+    font-weight: 700;
+    margin-bottom: 40px;
+    opacity: 0;
+  }
+  .bonus-intro.show .bi-sub {
+    animation: biSubFade 0.6s ease-out 2.0s forwards;
+  }
+  @keyframes biSubFade {
+    0%   { opacity: 0; letter-spacing: 30px; }
+    100% { opacity: 1; letter-spacing: 8px; }
+  }
+
+  .bi-deploy {
+    background: linear-gradient(180deg, var(--orange), var(--orange-2));
+    color: #000;
+    border: 4px solid #fff;
+    border-radius: 12px;
+    padding: 22px 80px;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    cursor: pointer;
+    box-shadow: 0 0 40px var(--orange), 0 6px 0 var(--orange-2), 0 10px 30px rgba(0,0,0,0.8);
+    opacity: 0;
+    transform: translateY(30px);
+    font-family: inherit;
+    position: relative;
+  }
+  .bonus-intro.show .bi-deploy {
+    animation: biDeployIn 0.5s ease-out 2.4s forwards,
+               biDeployPulse 1.4s ease-in-out 3.0s infinite;
+  }
+  @keyframes biDeployIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes biDeployPulse {
+    0%, 100% { box-shadow: 0 0 40px var(--orange), 0 6px 0 var(--orange-2), 0 10px 30px rgba(0,0,0,0.8); }
+    50%      { box-shadow: 0 0 80px var(--orange), 0 0 160px rgba(255,102,0,0.8), 0 6px 0 var(--orange-2), 0 10px 30px rgba(0,0,0,0.8); transform: translateY(-3px); }
+  }
+  .bi-deploy:hover {
+    background: linear-gradient(180deg, var(--orange-3), #dd5522);
+    animation-play-state: paused;
+  }
+
+  /* screen shake applied to whole stage briefly */
+  @keyframes stageShake {
+    0%, 100% { transform: translate(0, 0) scale(var(--stage-scale, 1)); }
+    20%  { transform: translate(-8px, 4px) scale(var(--stage-scale, 1)); }
+    40%  { transform: translate(6px, -3px) scale(var(--stage-scale, 1)); }
+    60%  { transform: translate(-4px, 2px) scale(var(--stage-scale, 1)); }
+    80%  { transform: translate(3px, -1px) scale(var(--stage-scale, 1)); }
+  }
+  .stage.shake {
+    animation: stageShake 0.4s ease-in-out;
+  }
+
+  /* ============= DEMO BUTTON ============= */
+  .demo-btn {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    background: rgba(0, 0, 0, 0.7);
+    color: var(--orange);
+    border: 2px dashed var(--orange);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    cursor: pointer;
+    z-index: 50;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .demo-btn:hover {
+    background: rgba(255, 102, 0, 0.2);
+    border-style: solid;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper" id="wrapper">
+  <div class="stage" id="stage">
+    <img class="bg" src="assets/backgrounds/background_desert_futuristic_night.png" alt="">
+    <div class="overlay"></div>
+
+    <div class="title">
+      <div class="title-main">WARPATH REELS</div>
+      <div class="title-sub">— OPERATION: ESCALATION —</div>
+    </div>
+
+    <button class="info-btn" id="infoBtn" title="Paytable">i</button>
+
+    <div class="escalation">
+      <div class="esc-label">ESCALATION</div>
+      <div class="pips" id="pips">
+        <div class="pip">1</div>
+        <div class="pip">2</div>
+        <div class="pip">3</div>
+        <div class="pip">4</div>
+        <div class="pip">5</div>
+      </div>
+    </div>
+
+    <div class="mult-badge">
+      <div class="mult-label">MULTIPLIER</div>
+      <div class="mult-value" id="multVal">1×</div>
+    </div>
+
+    <div class="reels-container">
+      <div class="ways-label">243 WAYS TO WIN</div>
+      <div class="reels" id="reels"></div>
+    </div>
+
+    <div class="win-display" id="winDisplay">
+      <div class="win-label">WIN</div>
+      <div class="win-amount" id="winAmount">0.00</div>
+    </div>
+
+    <div class="fs-counter">
+      <div class="fs-label">FREE SPINS LEFT</div>
+      <div class="fs-count" id="fsCount">0</div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="bet-panel">
+      <div class="balance">
+        <span class="stat-label">BALANCE</span>
+        <span class="balance-amount" id="balance">1000.00</span>
+      </div>
+      <div class="bet-display">
+        <span class="stat-label">BET</span>
+        <div class="bet-controls">
+          <button class="btn" id="betDown">−</button>
+          <span class="bet-amount" id="betAmount">1.00</span>
+          <button class="btn" id="betUp">+</button>
+        </div>
+      </div>
+      <button class="spin-btn" id="spinBtn">SPIN</button>
+    </div>
+
+    <!-- cinematic bonus intro (replaces plain modal) -->
+    <div class="bonus-intro" id="bonusIntro">
+      <div class="bi-flash"></div>
+      <div class="bi-scan"></div>
+      <div class="bi-bar bi-bar-top"></div>
+      <div class="bi-bar bi-bar-bot"></div>
+      <div class="bi-stripes"></div>
+      <div class="bi-rings"></div>
+      <div class="bi-content">
+        <div class="bi-incoming">⚠ INCOMING ⚠</div>
+        <div class="bi-title">FREE SPINS</div>
+        <div class="bi-num-wrap">
+          <span class="bi-num" id="biNum">10</span>
+        </div>
+        <div class="bi-sub">ESCALATION PROTOCOL · MULT CAPS AT 5×</div>
+        <button class="bi-deploy" id="introBtn">DEPLOY</button>
+      </div>
+    </div>
+
+    <!-- demo/test button -->
+    <button class="demo-btn" id="demoBonusBtn" title="Play bonus intro animation">▶ DEMO BONUS</button>
+
+    <div class="modal" id="tallyModal">
+      <div class="modal-inner">
+        <h2>MISSION COMPLETE</h2>
+        <p>TOTAL BONUS</p>
+        <span class="big-number" id="tallyTotal">0.00</span>
+        <p>CREDITS</p>
+        <button id="tallyBtn">CONTINUE</button>
+      </div>
+    </div>
+
+    <div class="modal" id="paytableModal">
+      <div class="modal-inner" style="max-width: 960px; padding: 40px;">
+        <h2 style="font-size:36px;letter-spacing:6px;">PAYTABLE</h2>
+        <div class="paytable-grid" id="paytableGrid"></div>
+        <p style="font-size:14px;letter-spacing:1.5px;color:var(--dust);margin-top:12px;">
+          243 ways to win. Pays = symbol × ways × (bet / 20). Left-to-right consecutive reels.<br>
+          NUKE wild substitutes for all except FLARE scatter. 3+ FLARE scatters → 10 free spins.
+        </p>
+        <button id="paytableClose">CLOSE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- RESPONSIVE STAGE SCALING ----------
+  function fitStage() {
+    const stage = document.getElementById('stage');
+    const sx = window.innerWidth / 1920;
+    const sy = window.innerHeight / 1080;
+    const s = Math.min(sx, sy);
+    stage.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fitStage);
+
+  // ---------- SYMBOLS ----------
+  // L1-L5 low, US1-US4 + IF1-IF4 + LADY high, NUKE wild, FLARE scatter
+  const SYM = {
+    L1:    { img: 'symbol_low_1.png',                tier: 'low',     pay: { 3:  5, 4:  15, 5:  50 } },
+    L2:    { img: 'symbol_low_2.png',                tier: 'low',     pay: { 3:  5, 4:  15, 5:  50 } },
+    L3:    { img: 'symbol_low_3.png',                tier: 'low',     pay: { 3:  5, 4:  20, 5:  60 } },
+    L4:    { img: 'symbol_low_4.png',                tier: 'low',     pay: { 3:  8, 4:  25, 5:  80 } },
+    L5:    { img: 'symbol_low_5.png',                tier: 'low',     pay: { 3:  8, 4:  25, 5:  80 } },
+    US1:   { img: 'symbol_high_us_soldier_1.png',    tier: 'high',    pay: { 3: 15, 4:  50, 5: 150 } },
+    US2:   { img: 'symbol_high_us_soldier_2.png',    tier: 'high',    pay: { 3: 15, 4:  50, 5: 150 } },
+    US3:   { img: 'symbol_high_us_soldier_3.png',    tier: 'high',    pay: { 3: 20, 4:  60, 5: 200 } },
+    US4:   { img: 'symbol_high_us_soldier_4.png',    tier: 'high',    pay: { 3: 20, 4:  60, 5: 200 } },
+    IF1:   { img: 'symbol_high_iran_fighter_1.png',  tier: 'high',    pay: { 3: 15, 4:  50, 5: 150 } },
+    IF2:   { img: 'symbol_high_iran_fighter_2.png',  tier: 'high',    pay: { 3: 15, 4:  50, 5: 150 } },
+    IF3:   { img: 'symbol_high_iran_fighter_3.png',  tier: 'high',    pay: { 3: 20, 4:  60, 5: 200 } },
+    IF4:   { img: 'symbol_high_iran_fighter_4.png',  tier: 'high',    pay: { 3: 20, 4:  60, 5: 200 } },
+    LADY:  { img: 'symbol_high_lady_soldier.png',    tier: 'premium', pay: { 3: 40, 4: 150, 5: 500 } },
+    NUKE:  { img: 'wild_stealth_nuke.png',           tier: 'wild',    pay: null },
+    FLARE: { img: 'scatter_warpath_flare.png',       tier: 'scatter', pay: null },
+  };
+
+  // Reel heights: [3,3,3,3,3] → 3⁵ = 243 ways (symmetric, clean)
+  const REEL_HEIGHTS = [3, 3, 3, 3, 3];
+
+  // Weighted reel strips (25 per reel). Scatter only on reels 1, 3, 5.
+  // LADY premium restricted to reels 3, 4, 5.
+  const STRIPS = [
+    ['L1','L2','L3','L4','L5','US1','IF1','FLARE','L1','L2','US2','IF2','L3','L4','NUKE','L5','US3','IF3','L1','FLARE','L2','L3','L4','US4','IF4'],
+    ['L2','L3','L4','US1','L1','IF1','L5','L3','US2','L2','IF2','L4','NUKE','L1','US3','L5','IF3','L2','L3','US4','L4','IF4','L1','L5','L2'],
+    ['L3','L4','FLARE','L5','US2','L1','IF2','L2','L3','US3','LADY','IF3','L5','NUKE','L1','US4','L2','IF4','FLARE','L3','L4','US1','L5','IF1','L2'],
+    ['L4','L5','L1','US3','L2','IF3','L3','US4','L4','IF4','L5','NUKE','L1','LADY','L2','US1','L3','IF1','L4','L5','US2','L1','IF2','L3','L4'],
+    ['L5','US1','L1','IF1','L2','US2','L3','LADY','IF2','L4','US3','L5','IF3','L1','LADY','NUKE','US4','FLARE','L2','IF4','L3','US1','L4','IF1','L5'],
+  ];
+
+  const BET_LEVELS = [0.20, 0.50, 1.00, 2.00, 5.00, 10.00, 20.00];
+
+  // ---------- STATE ----------
+  const state = {
+    balance: 1000,
+    betIdx: 2,           // default $1.00
+    mode: 'base',
+    freeSpinsLeft: 0,
+    pipsActive: 0,       // 0..5
+    multiplier: 1,
+    lastWin: 0,
+    bonusTotal: 0,
+    spinning: false,
+  };
+  const getBet = () => BET_LEVELS[state.betIdx];
+
+  // ---------- DOM ----------
+  const els = {
+    stage:       document.getElementById('stage'),
+    reels:       document.getElementById('reels'),
+    balance:     document.getElementById('balance'),
+    betAmount:   document.getElementById('betAmount'),
+    betUp:       document.getElementById('betUp'),
+    betDown:     document.getElementById('betDown'),
+    spinBtn:     document.getElementById('spinBtn'),
+    winDisplay:  document.getElementById('winDisplay'),
+    winAmount:   document.getElementById('winAmount'),
+    pips:        document.getElementById('pips'),
+    multVal:     document.getElementById('multVal'),
+    fsCount:     document.getElementById('fsCount'),
+    toast:       document.getElementById('toast'),
+    bonusIntro:  document.getElementById('bonusIntro'),
+    biNum:       document.getElementById('biNum'),
+    introBtn:    document.getElementById('introBtn'),
+    tallyModal:  document.getElementById('tallyModal'),
+    tallyBtn:    document.getElementById('tallyBtn'),
+    tallyTotal:  document.getElementById('tallyTotal'),
+    infoBtn:     document.getElementById('infoBtn'),
+    paytableModal: document.getElementById('paytableModal'),
+    paytableClose: document.getElementById('paytableClose'),
+    paytableGrid:  document.getElementById('paytableGrid'),
+    demoBonusBtn:  document.getElementById('demoBonusBtn'),
+  };
+
+  // Build reel DOM
+  const reelCells = []; // reelCells[col] = [cell, cell, cell, ...]
+  for (let col = 0; col < 5; col++) {
+    const reel = document.createElement('div');
+    reel.className = 'reel';
+    reel.dataset.col = col;
+    const colCells = [];
+    for (let row = 0; row < REEL_HEIGHTS[col]; row++) {
+      const cell = document.createElement('div');
+      cell.className = 'symbol';
+      const img = document.createElement('img');
+      img.className = 'symbol-img';
+      img.src = 'assets/symbols/' + SYM.L1.img;
+      img.alt = '';
+      cell.appendChild(img);
+      reel.appendChild(cell);
+      colCells.push(cell);
+    }
+    els.reels.appendChild(reel);
+    reelCells.push(colCells);
+  }
+
+  // Build paytable
+  const payableOrder = ['LADY','US1','US2','US3','US4','IF1','IF2','IF3','IF4','L5','L4','L3','L2','L1','NUKE','FLARE'];
+  for (const id of payableOrder) {
+    const s = SYM[id];
+    const row = document.createElement('div');
+    row.className = 'pt-row';
+    let paysHtml = '';
+    if (s.pay) {
+      paysHtml = `<b>3:</b>${s.pay[3]}× <b>4:</b>${s.pay[4]}× <b>5:</b>${s.pay[5]}×`;
+    } else if (s.tier === 'wild') {
+      paysHtml = '<span style="color:var(--orange)">WILD</span> — substitutes all except FLARE';
+    } else {
+      paysHtml = '<span style="color:var(--orange)">SCATTER</span> — 3+ triggers 10 free spins';
+    }
+    row.innerHTML = `<img src="assets/symbols/${s.img}" alt=""><div class="pt-pays">${paysHtml}</div>`;
+    els.paytableGrid.appendChild(row);
+  }
+
+  // ---------- REEL SPIN (random result from strips) ----------
+  function spinReels() {
+    const grid = []; // grid[col] = array of symbol ids (length = REEL_HEIGHTS[col])
+    for (let col = 0; col < 5; col++) {
+      const strip = STRIPS[col];
+      const h = REEL_HEIGHTS[col];
+      const top = Math.floor(Math.random() * strip.length);
+      const colSyms = [];
+      for (let i = 0; i < h; i++) {
+        colSyms.push(strip[(top + i) % strip.length]);
+      }
+      grid.push(colSyms);
+    }
+    return grid;
+  }
+
+  // ---------- EVALUATOR (ways to win) ----------
+  function evaluate(grid, bet) {
+    // For each base symbol (non-wild, non-scatter), find leftmost consecutive reels containing it or wild.
+    // ways = product of matching count per reel.
+    const candidates = Object.keys(SYM).filter(id => SYM[id].pay);
+    const perWayCost = bet / 20; // pay = symbolPay × ways × perWayCost
+    const wins = [];
+    let totalPayout = 0;
+    const winningCells = new Set(); // "col-row"
+
+    for (const symId of candidates) {
+      let ways = 1;
+      let reelCount = 0;
+      const matchCells = [];
+      for (let col = 0; col < 5; col++) {
+        let matches = 0;
+        const matchedRows = [];
+        for (let row = 0; row < REEL_HEIGHTS[col]; row++) {
+          const g = grid[col][row];
+          if (g === symId || g === 'NUKE') {
+            matches++;
+            matchedRows.push(row);
+          }
+        }
+        if (matches === 0) break;
+        ways *= matches;
+        matchCells.push({ col, rows: matchedRows });
+        reelCount++;
+      }
+      if (reelCount >= 3) {
+        const pay = SYM[symId].pay[reelCount];
+        if (pay) {
+          const payout = pay * ways * perWayCost;
+          totalPayout += payout;
+          wins.push({ symbol: symId, reelCount, ways, payout });
+          for (const m of matchCells) {
+            for (const r of m.rows) winningCells.add(m.col + '-' + r);
+          }
+        }
+      }
+    }
+
+    // scatter count
+    let scatterCount = 0;
+    for (let col = 0; col < 5; col++) {
+      for (let row = 0; row < REEL_HEIGHTS[col]; row++) {
+        if (grid[col][row] === 'FLARE') scatterCount++;
+      }
+    }
+
+    return { wins, scatterCount, totalPayout, winningCells };
+  }
+
+  // ---------- RENDER ----------
+  function setCell(col, row, symId) {
+    const cell = reelCells[col][row];
+    const img = cell.querySelector('img');
+    const newSrc = 'assets/symbols/' + SYM[symId].img;
+    if (img.dataset.sym !== symId) {
+      img.src = newSrc;
+      img.dataset.sym = symId;
+    }
+  }
+  function renderGrid(grid) {
+    for (let col = 0; col < 5; col++) {
+      for (let row = 0; row < REEL_HEIGHTS[col]; row++) {
+        setCell(col, row, grid[col][row]);
+      }
+    }
+  }
+  function clearWinVisuals() {
+    reelCells.flat().forEach(c => { c.classList.remove('win'); c.classList.remove('fade'); });
+    els.winDisplay.classList.remove('show');
+  }
+  function highlightWins(winningCells) {
+    const keys = winningCells;
+    for (let col = 0; col < 5; col++) {
+      for (let row = 0; row < REEL_HEIGHTS[col]; row++) {
+        const cell = reelCells[col][row];
+        if (keys.has(col + '-' + row)) cell.classList.add('win');
+        else cell.classList.add('fade');
+      }
+    }
+  }
+  function updateHUD() {
+    els.balance.textContent = state.balance.toFixed(2);
+    els.betAmount.textContent = getBet().toFixed(2);
+    els.multVal.textContent = state.multiplier + '×';
+    els.fsCount.textContent = state.freeSpinsLeft;
+    // pips
+    const pips = els.pips.children;
+    for (let i = 0; i < pips.length; i++) {
+      pips[i].classList.toggle('active', i < state.pipsActive);
+    }
+    if (state.mode === 'bonus') {
+      els.stage.classList.add('bonus');
+      els.betUp.disabled = true;
+      els.betDown.disabled = true;
+    } else {
+      els.stage.classList.remove('bonus');
+      els.betUp.disabled = false;
+      els.betDown.disabled = false;
+    }
+  }
+  function showWin(amount) {
+    els.winAmount.textContent = amount.toFixed(2);
+    els.winDisplay.classList.add('show');
+  }
+  function toast(msg, duration = 2000) {
+    els.toast.textContent = msg;
+    els.toast.classList.remove('show');
+    void els.toast.offsetWidth;
+    els.toast.classList.add('show');
+  }
+
+  // ---------- ANIMATION ----------
+  function animateSpin(finalGrid, onComplete) {
+    const durations = [700, 850, 1000, 1150, 1350];
+    const randSym = () => {
+      const pool = ['L1','L2','L3','L4','L5','US1','US2','US3','IF1','IF2','IF3','NUKE','FLARE'];
+      return pool[Math.floor(Math.random() * pool.length)];
+    };
+
+    // Start shake, swap images rapidly
+    for (let col = 0; col < 5; col++) {
+      els.reels.children[col].classList.add('spinning');
+    }
+    const intervalMs = 80;
+    const intervals = [];
+    for (let col = 0; col < 5; col++) {
+      const iv = setInterval(() => {
+        for (let row = 0; row < REEL_HEIGHTS[col]; row++) {
+          setCell(col, row, randSym());
+        }
+      }, intervalMs);
+      intervals.push(iv);
+    }
+
+    let stopped = 0;
+    for (let col = 0; col < 5; col++) {
+      setTimeout(() => {
+        clearInterval(intervals[col]);
+        els.reels.children[col].classList.remove('spinning');
+        for (let row = 0; row < REEL_HEIGHTS[col]; row++) {
+          setCell(col, row, finalGrid[col][row]);
+        }
+        stopped++;
+        if (stopped === 5) onComplete();
+      }, durations[col]);
+    }
+  }
+
+  // ---------- AUDIO (beeps) ----------
+  let ac = null;
+  function beep(freq, dur, vol = 0.04) {
+    try {
+      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ac.createOscillator();
+      const g = ac.createGain();
+      osc.frequency.value = freq;
+      osc.type = 'square';
+      g.gain.value = vol;
+      osc.connect(g).connect(ac.destination);
+      osc.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
+      osc.stop(ac.currentTime + dur);
+    } catch (e) {}
+  }
+
+  // ---------- GAME FLOW ----------
+  function doSpin() {
+    if (state.spinning) return;
+    if (state.mode === 'base') {
+      const bet = getBet();
+      if (state.balance < bet) {
+        toast('INSUFFICIENT BALANCE');
+        return;
+      }
+      state.balance -= bet;
+    }
+    state.spinning = true;
+    state.lastWin = 0;
+    clearWinVisuals();
+    updateHUD();
+    els.spinBtn.disabled = true;
+    beep(160, 0.12);
+
+    const grid = spinReels();
+    const bet = getBet();
+    const result = evaluate(grid, bet);
+
+    animateSpin(grid, () => {
+      const mult = state.mode === 'bonus' ? state.multiplier : 1;
+      const winAmount = result.totalPayout * mult;
+      state.lastWin = winAmount;
+
+      if (winAmount > 0) {
+        state.balance += winAmount;
+        if (state.mode === 'bonus') state.bonusTotal += winAmount;
+        highlightWins(result.winningCells);
+        showWin(winAmount);
+        beep(523, 0.15);
+        setTimeout(() => beep(784, 0.2), 120);
+      }
+      updateHUD();
+
+      // scatter trigger (base game)
+      if (state.mode === 'base' && result.scatterCount >= 3) {
+        setTimeout(triggerBonus, 1000);
+        return;
+      }
+
+      // bonus flow
+      if (state.mode === 'bonus') {
+        // retrigger
+        if (result.scatterCount >= 3) {
+          state.freeSpinsLeft += 5;
+          toast('+5 FREE SPINS');
+          beep(659, 0.2);
+        }
+
+        // escalation: each free spin fills a pip; filling all 5 bumps multiplier
+        state.pipsActive++;
+        if (state.pipsActive >= 5) {
+          state.pipsActive = 0;
+          if (state.multiplier < 5) {
+            state.multiplier++;
+            toast('MULTIPLIER ' + state.multiplier + '×');
+            beep(880, 0.25);
+          }
+        }
+
+        state.freeSpinsLeft--;
+        updateHUD();
+
+        if (state.freeSpinsLeft <= 0) {
+          setTimeout(endBonus, 1500);
+        } else {
+          setTimeout(() => {
+            state.spinning = false;
+            els.spinBtn.disabled = false;
+          }, 700);
+          return;
+        }
+      }
+
+      state.spinning = false;
+      if (state.mode === 'base') els.spinBtn.disabled = false;
+    });
+  }
+
+  function triggerBonus() {
+    state.mode = 'bonus';
+    state.freeSpinsLeft = 10;
+    state.multiplier = 1;
+    state.pipsActive = 0;
+    state.bonusTotal = 0;
+    els.biNum.textContent = '10';
+    // restart animation by toggling class
+    els.bonusIntro.classList.remove('show');
+    void els.bonusIntro.offsetWidth;
+    els.bonusIntro.classList.add('show');
+
+    // layered siren-style beep cascade matching the animation beats
+    beep(80, 0.1, 0.08);                                    // initial thud
+    setTimeout(() => beep(220, 0.1, 0.06), 50);             // impact
+    setTimeout(() => beep(440, 0.08), 300);                 // scan
+    setTimeout(() => beep(330, 0.1), 400);
+    setTimeout(() => beep(660, 0.15), 550);                 // INCOMING slam
+    setTimeout(() => beep(880, 0.1), 650);
+    setTimeout(() => beep(392, 0.2), 1000);                 // title
+    setTimeout(() => beep(523, 0.2), 1150);
+    setTimeout(() => beep(659, 0.25), 1300);
+    setTimeout(() => beep(784, 0.3), 1500);                 // number pop
+    setTimeout(() => beep(988, 0.35), 1700);
+  }
+  function beginBonus() {
+    els.bonusIntro.classList.remove('show');
+    state.spinning = false;
+    updateHUD();
+    els.spinBtn.disabled = false;
+  }
+  function endBonus() {
+    state.mode = 'base';
+    els.tallyTotal.textContent = state.bonusTotal.toFixed(2);
+    els.tallyModal.classList.add('show');
+    beep(784, 0.25);
+    setTimeout(() => beep(988, 0.3), 180);
+  }
+  function closeTally() {
+    els.tallyModal.classList.remove('show');
+    state.bonusTotal = 0;
+    state.multiplier = 1;
+    state.pipsActive = 0;
+    state.freeSpinsLeft = 0;
+    state.spinning = false;
+    updateHUD();
+    els.spinBtn.disabled = false;
+  }
+
+  function bumpBet(dir) {
+    if (state.mode !== 'base' || state.spinning) return;
+    state.betIdx = Math.max(0, Math.min(BET_LEVELS.length - 1, state.betIdx + dir));
+    updateHUD();
+  }
+
+  // ---------- INIT ----------
+  function init() {
+    renderGrid(spinReels());
+    updateHUD();
+    fitStage();
+
+    els.spinBtn.addEventListener('click', doSpin);
+    els.betUp.addEventListener('click', () => bumpBet(+1));
+    els.betDown.addEventListener('click', () => bumpBet(-1));
+    els.introBtn.addEventListener('click', beginBonus);
+    els.tallyBtn.addEventListener('click', closeTally);
+    els.infoBtn.addEventListener('click', () => els.paytableModal.classList.add('show'));
+    els.paytableClose.addEventListener('click', () => els.paytableModal.classList.remove('show'));
+    els.demoBonusBtn.addEventListener('click', () => {
+      if (state.mode === 'base' && !state.spinning) triggerBonus();
+    });
+
+    // query-param auto-trigger for screenshotting: ?bonus=1
+    if (new URLSearchParams(location.search).get('bonus') === '1') {
+      setTimeout(triggerBonus, 300);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (!els.spinBtn.disabled) doSpin();
+      } else if (e.code === 'KeyB' && state.mode === 'base' && !state.spinning) {
+        e.preventDefault();
+        triggerBonus();
+      }
+    });
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>
